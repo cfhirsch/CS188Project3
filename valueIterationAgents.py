@@ -11,7 +11,6 @@
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
-
 import mdp, util
 
 from learningAgents import ValueEstimationAgent
@@ -43,9 +42,39 @@ class ValueIterationAgent(ValueEstimationAgent):
         self.iterations = iterations
         self.values = util.Counter() # A Counter is a dict with default 0
 
-        # Write value iteration code here
-        "*** YOUR CODE HERE ***"
+        print "Discount = ", discount
 
+        # Write value iteration code here
+        states = mdp.getStates()
+        for i in range(0, self.iterations):
+            #print "Iteration:", i
+            nextValues = self.values.copy()
+            # compute V_i(s)
+            for state in states:
+                #print "---------------"
+                #print "State = ", state
+                actions = self.mdp.getPossibleActions(state)
+                if len(actions) > 0:
+                    newVal = float('-inf')
+ 
+                    for action in actions:
+                        #print "Action = ", action
+                        total = 0
+                        ts = self.mdp.getTransitionStatesAndProbs(state, action)
+                        for (nextState, prob) in ts:
+                            print nextState, ",", prob
+                            reward = self.mdp.getReward(state, action, nextState)
+                            #print "Reward = ", reward
+                            total += prob * (reward + (self.discount * self.values[nextState]))
+                            #print "Total = ", total
+                        if total > newVal:
+                            newVal = total
+                    nextValues[state] = newVal
+                print "---------------"
+            self.values = nextValues
+
+            for key in self.values:
+                print key, ":", self.values[key]
 
     def getValue(self, state):
         """
@@ -53,14 +82,19 @@ class ValueIterationAgent(ValueEstimationAgent):
         """
         return self.values[state]
 
-
     def computeQValueFromValues(self, state, action):
         """
           Compute the Q-value of action in state from the
           value function stored in self.values.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        total = 0.0
+        ts = self.mdp.getTransitionStatesAndProbs(state, action)
+        for (nextState, prob) in ts:
+            reward = self.mdp.getReward(state, action, nextState)
+            newReward = prob * (reward + (self.discount * self.values[nextState]))
+            total = total + newReward
+
+        return total
 
     def computeActionFromValues(self, state):
         """
@@ -71,8 +105,16 @@ class ValueIterationAgent(ValueEstimationAgent):
           there are no legal actions, which is the case at the
           terminal state, you should return None.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        actions = self.mdp.getPossibleActions(state)
+        maxAction = None
+        maxVal = float('-inf')
+        for action in actions:
+            newVal = self.computeQValueFromValues(state, action)
+            if newVal > maxVal:
+                maxVal = newVal
+                maxAction = action
+
+        return maxAction
 
     def getPolicy(self, state):
         return self.computeActionFromValues(state)
