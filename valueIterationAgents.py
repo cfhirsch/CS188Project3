@@ -58,17 +58,9 @@ class ValueIterationAgent(ValueEstimationAgent):
                     newVal = float('-inf')
  
                     for action in actions:
-                        #print "Action = ", action
-                        total = 0
-                        ts = self.mdp.getTransitionStatesAndProbs(state, action)
-                        for (nextState, prob) in ts:
-                            print nextState, ",", prob
-                            reward = self.mdp.getReward(state, action, nextState)
-                            #print "Reward = ", reward
-                            total += prob * (reward + (self.discount * self.values[nextState]))
-                            #print "Total = ", total
-                        if total > newVal:
-                            newVal = total
+                        qValue = self.computeQValueFromValues(state, action)
+                        if qValue > newVal:
+                            newVal = qValue
                     nextValues[state] = newVal
                 print "---------------"
             self.values = nextValues
